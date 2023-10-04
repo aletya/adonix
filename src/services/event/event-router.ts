@@ -371,6 +371,8 @@ eventsRouter.post("/", strongJwtVerification, async (req: Request, res: Response
 	eventFormat._id = id;
 	eventFormat.eventId = id;
 
+	let createdEvent: PublicEvent | StaffEvent;
+
 	// Try to upload the events if possible, else throw an error
 	try {
 		if (isStaffEvent) {
@@ -380,20 +382,21 @@ eventsRouter.post("/", strongJwtVerification, async (req: Request, res: Response
 			}
 
 			const staffEvent: StaffEvent = new StaffEvent(eventFormat);
-			await StaffEventModel.insertMany(staffEvent);
+			createdEvent = await StaffEventModel.create(staffEvent);
 		} else {
 			if (!isValidPublicFormat(eventFormat)) {
 				return res.status(Constants.BAD_REQUEST).send({ error: "InvalidParams" });
 			}
 			const publicEvent: PublicEvent = new PublicEvent(eventFormat);
-			await PublicEventModel.insertMany(publicEvent);
+			createdEvent = await PublicEventModel.create(publicEvent);
 		}
-		await EventMetadataModel.insertMany(metadata);
+		
+		await EventMetadataModel.create(metadata);
+		return res.status(Constants.CREATED).send(createdEvent);
 	} catch (error) {
 		return next(error);
 	}
 	
-	return res.status(Constants.CREATED).send(req.body);
 });
 
 /**

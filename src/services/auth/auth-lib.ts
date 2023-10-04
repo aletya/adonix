@@ -11,8 +11,8 @@ import databaseClient from "../../database.js";
 import { AuthDB, RolesSchema } from "./auth-schemas.js";
 import { Role, JwtPayload, Provider, ProfileData, RoleOperation, RoleData } from "./auth-models.js";
 
-import { UserSchema } from "../user/user-schemas.js";
-import { getUser } from "../user/user-lib.js";
+import { User } from "../user/user-models.js";
+import { UserModel } from "../user/user-db.js";
 
 type AuthenticateFunction = (strategies: string | string[], options: AuthenticateOptions) => RequestHandler;
 type VerifyCallback = (err: Error | null, user?: Profile | false, info?: object) => void;
@@ -79,31 +79,31 @@ export async function getJwtPayloadFromProfile(provider: string, data: ProfileDa
 
 /**
  * Get a JWT payload for a user, from database. Perform an auth query and an users query, which are used in an implicit join.
- * @param targetUser UserID of the user to return a JWT payload for.
+ * @param userId UserID of the user to return a JWT payload for.
  * @returns Promise, containing either JWT payload or reason for failure
  */
-export async function getJwtPayloadFromDB(targetUser: string): Promise<JwtPayload> {
+export async function getJwtPayloadFromDB(userId: string): Promise<JwtPayload> {
 	let authInfo: RolesSchema | undefined;
-	let userInfo: UserSchema | undefined;
+	let user: User | null = null;
 
 	// Fill in auth info, used for provider and roles
 	try {
-		authInfo = await getAuthInfo(targetUser);
-		userInfo = await getUser(targetUser);
+		authInfo = await getAuthInfo(userId);
+		user = await UserModel.findOne({userId: userId});
 	} catch (error) {
 		console.error(error);
 	}
 		
 	// If either one does not exist, the info doesn't exist in the database. Throw error
-	if (!authInfo || !userInfo) {
+	if (!authInfo || !user) {
 		return Promise.reject("UserNotFound");
 	}
 
 	// Create and return new payload
 	const newPayload: JwtPayload = {
-		id: targetUser,
+		id: userId,
 		roles: authInfo.roles ,
-		email: userInfo.email,
+		email: user.email,
 		provider: authInfo.provider,
 	};
 	return newPayload;

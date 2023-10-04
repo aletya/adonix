@@ -13,6 +13,9 @@ import { SelectAuthProvider } from "../../middleware/select-auth.js";
 import { ModifyRoleRequest } from "./auth-formats.js";
 import { JwtPayload, ProfileData, Provider, Role, RoleOperation } from "./auth-models.js";
 import { generateJwtToken, getDevice, getJwtPayloadFromProfile, getRoles, hasElevatedPerms, updateRoles, verifyFunction, getUsersWithRole } from "./auth-lib.js";
+import { UserModel } from "../user/user-db.js";
+import { User } from "../user/user-models.js";
+import { UserFormat } from "../user/user-formats.js";
 
 
 passport.use(Provider.GITHUB, new GitHubStrategy({
@@ -119,15 +122,29 @@ authRouter.get("/:PROVIDER/callback/:DEVICE", (req: Request, res: Response, next
 	}
 
 	const device: string = (res.locals.device ?? Constants.DEFAULT_DEVICE) as string;
-	const user: GithubProfile | GoogleProfile = req.user as GithubProfile | GoogleProfile;
-	const data: ProfileData = user._json as ProfileData;
+	const profile: GithubProfile | GoogleProfile = req.user as GithubProfile | GoogleProfile;
+	const data: ProfileData = profile._json as ProfileData;
 	const redirect: string = (Constants.REDIRECT_MAPPINGS.get(device) ?? Constants.DEFAULT_REDIRECT);
 
-	data.id = data.id ?? user.id;
+	data.id = data.id ?? profile.id;
 
 	try {
 		// Load in the payload with the actual values stored in the database
-		const payload: JwtPayload = await getJwtPayloadFromProfile(user.provider, data);
+		const payload: JwtPayload = await getJwtPayloadFromProfile(profile.provider, data);
+		const user: User | null = await UserModel.findOne({userId: data.id});
+
+		if (!user) {
+			const firstName: string = profile.name?.givenName || "FirstName";
+			const lastName: string = profile.name?.familyName || "LastName";
+			const userFormat: UserFormat = {
+				id: data.id,
+				firstname: firstName,
+				lastname: lastName,
+				username: profile.username || `${firstName}${lastName}`,
+				email: payload.email
+			}
+			UserModel.create(new User(userFormat));
+		}
 
 		// Generate the token, and return it
 		const token: string = generateJwtToken(payload);

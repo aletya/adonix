@@ -4,11 +4,13 @@ import Constants from "../../constants.js";
 import { strongJwtVerification } from "../../middleware/verify-jwt.js";
 
 import { JwtPayload } from "../auth/auth-models.js";
-import { generateJwtToken, getJwtPayloadFromDB, hasElevatedPerms } from "../auth/auth-lib.js";
+import { generateJwtToken, getJwtPayloadFromDB, hasElevatedPerms, hasStaffPerms } from "../auth/auth-lib.js";
 
-import { UserSchema } from "./user-schemas.js";
-import { UserFormat } from "./user-formats.js";
-import { getUser, updateUser } from "./user-lib.js";
+import { UserFormat, isValidUserFormat } from "./user-formats.js";
+
+import { UserModel } from "./user-db.js";
+import { FilteredUserView, User } from "./user-models.js";
+import { createFilteredUserView } from "./user-lib.js";
 
 
 const userRouter: Router = Router();
@@ -122,23 +124,30 @@ userRouter.get("/qr/:USERID", strongJwtVerification, async (req: Request, res: R
 userRouter.get("/:USERID", strongJwtVerification, async (req: Request, res: Response) => {
 	// If no target user, exact same as next route
 	if (!req.params.USERID) {
-		res.redirect("/");
+		return res.redirect("/");
 	}
-
-	const targetUser: string = req.params.USERID ?? "";
 
 	// Get payload, and check if authorized
+	const targetUser: string = req.params.USERID;
 	const payload: JwtPayload = res.locals.payload as JwtPayload;
+	
 	if (payload.id == targetUser || hasElevatedPerms(payload)) {
 		// Authorized -> return the user object
-		await getUser(targetUser).then((user: UserSchema) => {
-			res.status(Constants.SUCCESS).send(user);
-		}).catch((error: string) => {
-			res.status(Constants.INTERNAL_ERROR).send(error);
-		});
-	} else {
-		res.status(Constants.FORBIDDEN).send({ error: "no valid auth provided!" });
+		try {
+			const user: User | null = await UserModel.findOne({ userId: targetUser });
+			if (!user) {
+				return res.status(Constants.BAD_REQUEST).send({ error: "UserNotFound" });
+			} else {
+				const filteredUser: FilteredUserView = createFilteredUserView(user);
+				return res.status(Constants.SUCCESS).send(filteredUser);
+			}
+		} catch (error) {
+			console.log(error);
+		}
 	}
+
+	// Catch all case: no access to thi service
+	return res.status(Constants.FORBIDDEN).send({ error: "Forbidden" });
 });
 
 
@@ -166,15 +175,20 @@ userRouter.get("/:USERID", strongJwtVerification, async (req: Request, res: Resp
 userRouter.get("/", strongJwtVerification, async (_: Request, res: Response) => {
 	// Get payload, return user's values
 	const payload: JwtPayload = res.locals.payload as JwtPayload;
+	const userId: string = payload.id;
+
 	try {
-		const user: UserSchema = await getUser(payload.id);
-		res.status(Constants.SUCCESS).send(user);
-	} catch (error) {
-		if (error == "UserNotFound") {
-			res.status(Constants.BAD_REQUEST).send("UserNotFound");
+		const user: User | null = await UserModel.findOne({ userId: userId });
+
+		// No user -> return not found
+		if (!user) {
+			return res.status(Constants.BAD_REQUEST).send("UserNotFound");
 		}
 
-		res.status(Constants.INTERNAL_ERROR).send("InternalError");
+		const filteredUser: FilteredUserView = createFilteredUserView(user);
+		return res.status(Constants.SUCCESS).send(filteredUser);
+	} catch (error) {
+		return res.status(Constants.INTERNAL_ERROR).send("InternalError");
 	}
 });
 
@@ -184,22 +198,22 @@ userRouter.get("/", strongJwtVerification, async (_: Request, res: Response) => 
  * @apiGroup User
  * @apiDescription Update a given user
  *
- * @apiBody {String} id UserID
+ * @apiBody {String} userId UserId
  * @apiBody {String} firstname User's first name.
  * @apiBody {String} lastname User's last name.
- * @apiBody {String} email Email address (staff gmail or Github email).
+ * @apiBody {String} email Email address (Staff gmail or GitHub email).
  * @apiParamExample {json} Example Request:
  *	{
-		"id": "provider00001",
+		"userId": "provider00001",
 		"firstname": "john",
 		"lastname": "doe",
 		"email": "johndoe@provider.com"
  * 	}
  *
- * @apiSuccess (200: Success) {String} id UserID
+ * @apiSuccess (200: Success) {String} id UserId
  * @apiSuccess (200: Success) {String} firstname User's first name.
  * @apiSuccess (200: Success) {String} lastname User's last name.
- * @apiSuccess (200: Success) {String} email Email address (staff gmail or Github email).
+ * @apiSuccess (200: Success) {String} email Email address.
 		
  * @apiSuccessExample Example Success Response:
 		* 	HTTP/1.1 200 OK
@@ -208,31 +222,29 @@ userRouter.get("/", strongJwtVerification, async (_: Request, res: Response) => 
 			"firstname": "john",
 			"lastname": "doe",
 			"email": "johndoe@provider.com"
- 		* 	}
+			* 	}
  * @apiUse strongVerifyErrors
  */
 userRouter.post("/", strongJwtVerification, async (req: Request, res: Response) => {
-	const token: JwtPayload = res.locals.payload as JwtPayload;
+	const payload: JwtPayload = res.locals.payload as JwtPayload;
+	const userData: UserFormat = req.body as UserFormat;
 
-	if (!hasElevatedPerms(token)) {
+	// Can only create the token for your own JWT token or
+	if (!hasStaffPerms(payload) && payload.id != userData.id) {
 		return res.status(Constants.FORBIDDEN).send({ error: "InvalidToken" });
 	}
 
-	// Get userData from the request, and print to output
-	const userData: UserFormat = req.body as UserFormat;
-
-	if (!userData.id|| !userData.email || !userData.firstname || !userData.lastname || !userData.username) {
+	// Check if we can create the user, if not we return
+	if (!isValidUserFormat(userData)) {
 		return res.status(Constants.BAD_REQUEST).send({ error: "InvalidParams" });
 	}
 
-	// Update the given user
-	await updateUser(userData);
-
-	// Return new value of the user
-
+	// Create the given user
+	const user: User = new User(userData);
 	try {
-		const user: UserSchema = await getUser(userData.id);
-		return res.status(Constants.SUCCESS).send(user);
+		const createdUser: User = await UserModel.create(user);
+		const filteredUser: FilteredUserView = createFilteredUserView(createdUser);
+		return res.status(Constants.CREATED).send(filteredUser);
 	} catch (error) {
 		console.error(error);
 		return res.status(Constants.INTERNAL_ERROR).send({ error: "InternalError" });
