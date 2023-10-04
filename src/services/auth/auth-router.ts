@@ -131,8 +131,7 @@ authRouter.get("/:PROVIDER/callback/:DEVICE", (req: Request, res: Response, next
 	try {
 		// Load in the payload with the actual values stored in the database
 		const payload: JwtPayload = await getJwtPayloadFromProfile(profile.provider, data);
-		const user: User | null = await UserModel.findOne({ userId: data.id });
-
+		const user: User | null = await UserModel.findOne({ userId: payload.id });
 		if (!user) {
 			const firstName: string = profile.name?.givenName || "FirstName";
 			const lastName: string = profile.name?.familyName || "LastName";
