@@ -9,8 +9,7 @@ import { generateJwtToken, getJwtPayloadFromDB, hasElevatedPerms, hasStaffPerms 
 import { UserFormat, isValidUserFormat } from "./user-formats.js";
 
 import { UserModel } from "./user-db.js";
-import { FilteredUserView, User } from "./user-models.js";
-import { createFilteredUserView } from "./user-lib.js";
+import { User } from "./user-models.js";
 
 
 const userRouter: Router = Router();
@@ -138,8 +137,7 @@ userRouter.get("/:USERID", strongJwtVerification, async (req: Request, res: Resp
 			if (!user) {
 				return res.status(Constants.BAD_REQUEST).send({ error: "UserNotFound" });
 			} else {
-				const filteredUser: FilteredUserView = createFilteredUserView(user);
-				return res.status(Constants.SUCCESS).send(filteredUser);
+				return res.status(Constants.SUCCESS).send(user);
 			}
 		} catch (error) {
 			console.log(error);
@@ -185,8 +183,7 @@ userRouter.get("/", strongJwtVerification, async (_: Request, res: Response) => 
 			return res.status(Constants.BAD_REQUEST).send("UserNotFound");
 		}
 
-		const filteredUser: FilteredUserView = createFilteredUserView(user);
-		return res.status(Constants.SUCCESS).send(filteredUser);
+		return res.status(Constants.SUCCESS).send(user);
 	} catch (error) {
 		return res.status(Constants.INTERNAL_ERROR).send("InternalError");
 	}
@@ -243,8 +240,7 @@ userRouter.post("/", strongJwtVerification, async (req: Request, res: Response) 
 	const user: User = new User(userData);
 	try {
 		const createdUser: User = await UserModel.create(user);
-		const filteredUser: FilteredUserView = createFilteredUserView(createdUser);
-		return res.status(Constants.CREATED).send(filteredUser);
+		return res.status(Constants.CREATED).send(createdUser);
 	} catch (error) {
 		console.error(error);
 		return res.status(Constants.INTERNAL_ERROR).send({ error: "InternalError" });

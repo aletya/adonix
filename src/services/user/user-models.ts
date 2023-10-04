@@ -30,12 +30,3 @@ export class User {
 		this.username = userFormat.username;
 	}
 }
-
-// User object document schema
-export class FilteredUserView {
-	id: string;
-	username: string;
-	firstname: string;
-	lastname: string;
-	email: string;
-}

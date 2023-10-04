@@ -6,7 +6,7 @@ import Constants from "src/constants";
 
 // Collections within the user database
 export enum UserDB {
-	INFO = "info",
+	INFO = "users",
 }
 
 
