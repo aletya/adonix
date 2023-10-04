@@ -1,5 +1,5 @@
 import { prop } from "@typegoose/typegoose";
-import { UserFormat } from "./user-formats";
+import { UserFormat } from "./user-formats.js";
 
 // User object document schema
 export class User {

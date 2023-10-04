@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 import { User } from "./user-models.js";
 import { getModelForClass } from "@typegoose/typegoose";
-import { generateConfig } from "src/database";
-import Constants from "src/constants";
+
+import { generateConfig } from "../../database.js";
+import Constants from "../../constants.js";
 
 // Collections within the user database
 export enum UserDB {
