@@ -183,7 +183,7 @@ userRouter.get("/", strongJwtVerification, async (_: Request, res: Response) => 
 			return res.status(Constants.BAD_REQUEST).send("UserNotFound");
 		}
 
-		return res.status(Constants.SUCCESS).send(user);
+		return res.status(Constants.SUCCESS).send({id: user.userId, firstName: user.firstName, lastName: user.lastName, email: user.email, username: user.username});
 	} catch (error) {
 		return res.status(Constants.INTERNAL_ERROR).send("InternalError");
 	}
