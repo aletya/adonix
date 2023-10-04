@@ -23,7 +23,7 @@ export class User {
 
 	constructor(userFormat: UserFormat) {
 		this._id = userFormat.id;
-		this.userId = userFormat.id;
+		this.userId = userFormat.userId ?? userFormat.id;
 		this.email = userFormat.email;
 		this.firstName = userFormat.firstname;
 		this.lastName = userFormat.lastname;

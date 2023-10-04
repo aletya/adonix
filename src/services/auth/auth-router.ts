@@ -138,6 +138,7 @@ authRouter.get("/:PROVIDER/callback/:DEVICE", (req: Request, res: Response, next
 			const lastName: string = profile.name?.familyName || "LastName";
 			const userFormat: UserFormat = {
 				id: data.id,
+				userId: payload.id,
 				firstname: firstName,
 				lastname: lastName,
 				username: profile.username || `${firstName}${lastName}`,

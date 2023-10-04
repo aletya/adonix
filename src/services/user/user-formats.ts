@@ -1,5 +1,6 @@
 export interface UserFormat {
 	id: string,
+	userId?: string,
 	username: string,
 	firstname: string,
 	lastname: string,
