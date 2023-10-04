@@ -89,7 +89,7 @@ export async function getJwtPayloadFromDB(userId: string): Promise<JwtPayload> {
 	// Fill in auth info, used for provider and roles
 	try {
 		authInfo = await getAuthInfo(userId);
-		user = await UserModel.findOne({userId: userId});
+		user = await UserModel.findOne({ userId: userId });
 	} catch (error) {
 		console.error(error);
 	}

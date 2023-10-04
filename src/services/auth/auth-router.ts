@@ -131,7 +131,7 @@ authRouter.get("/:PROVIDER/callback/:DEVICE", (req: Request, res: Response, next
 	try {
 		// Load in the payload with the actual values stored in the database
 		const payload: JwtPayload = await getJwtPayloadFromProfile(profile.provider, data);
-		const user: User | null = await UserModel.findOne({userId: data.id});
+		const user: User | null = await UserModel.findOne({ userId: data.id });
 
 		if (!user) {
 			const firstName: string = profile.name?.givenName || "FirstName";
@@ -141,9 +141,9 @@ authRouter.get("/:PROVIDER/callback/:DEVICE", (req: Request, res: Response, next
 				firstname: firstName,
 				lastname: lastName,
 				username: profile.username || `${firstName}${lastName}`,
-				email: payload.email
-			}
-			UserModel.create(new User(userFormat));
+				email: payload.email,
+			};
+			await UserModel.create(new User(userFormat));
 		}
 
 		// Generate the token, and return it
