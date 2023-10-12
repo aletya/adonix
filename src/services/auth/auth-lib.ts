@@ -112,6 +112,8 @@ export function generateJwtToken(payload?: JwtPayload, expiration?: string): str
         throw new Error("No JWT token passed in!");
     }
 
+    console.log(expiration);
+
     // Ensure that the secret actually exists
     const secret: string | undefined = process.env.JWT_SECRET;
     if (!secret) {
@@ -120,8 +122,8 @@ export function generateJwtToken(payload?: JwtPayload, expiration?: string): str
 
     // // Appends an expiry field to the JWT token
     const options: SignOptions = {};
-    const offset: number = ms(expiration ?? Constants.DEFAULT_JWT_OFFSET);
-    payload.exp = Math.floor(Date.now() + offset) / Constants.MILLISECONDS_PER_SECOND;
+    // const offset: number = ms(expiration ?? Constants.DEFAULT_JWT_OFFSET);
+    // payload.exp = Math.floor(Date.now() + offset) / Constants.MILLISECONDS_PER_SECOND;
 
     // Generate a token, and return it
     const token: string = jsonwebtoken.sign(payload, secret, options);
