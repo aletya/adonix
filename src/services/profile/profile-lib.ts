@@ -35,6 +35,7 @@ export async function updatePoints(userId: string, amount: number): Promise<Atte
     const updateQuery: UpdateQuery<AttendeeProfile> = {
         $inc: {
             points: amount,
+            coins: amount,
         },
     };
 

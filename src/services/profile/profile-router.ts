@@ -124,10 +124,15 @@ profileRouter.get("/", strongJwtVerification, async (_: Request, res: Response, 
 
     const userId: string = payload.id;
 
-    const user: AttendeeProfile | null = await Models.AttendeeProfile.findOne({ userId: userId });
+    let user: AttendeeProfile | null = await Models.AttendeeProfile.findOne({ userId: userId });
 
     if (!user) {
         return next(new RouterError(StatusCode.ClientErrorNotFound, "UserNotFound"));
+    }
+
+    // updates user if it doesn't have coins
+    if (!user.coins) {
+        user = await Models.AttendeeProfile.findOneAndUpdate({ userId: userId }, { coins: user.points }, { upsert: false, new: true });
     }
 
     return res.status(StatusCode.SuccessOK).send(user);
@@ -231,6 +236,7 @@ profileRouter.get("/id", (_: Request, res: Response) => {
 profileRouter.post("/", strongJwtVerification, async (req: Request, res: Response, next: NextFunction) => {
     const profile: ProfileFormat = req.body as ProfileFormat;
     profile.points = Config.DEFAULT_POINT_VALUE;
+    profile.coins = Config.DEFAULT_POINT_VALUE;
 
     const payload: JwtPayload = res.locals.payload as JwtPayload;
     profile.userId = payload.id;
@@ -331,6 +337,11 @@ profileRouter.get("/addpoints", strongJwtVerification, async (req: Request, res:
 
     if (!queryResult) {
         return next(new RouterError(StatusCode.ClientErrorBadRequest, "UserNotFound"));
+    }
+
+    // sets coins for profile so there will never be an error
+    if (!queryResult.coins) {
+        await Models.AttendeeProfile.findOneAndUpdate({ userId: userId }, { coins: queryResult.points }, { upsert: false });
     }
 
     await updatePoints(userId, points);
