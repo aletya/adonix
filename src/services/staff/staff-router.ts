@@ -7,7 +7,7 @@ import { hasStaffPerms } from "../auth/auth-lib.js";
 import { AttendanceFormat } from "./staff-formats.js";
 import Config from "../../config.js";
 
-import { EventMetadata, PublicEvent, StaffEvent } from "../../database/event-db.js";
+import { EventMetadata, StaffEvent } from "../../database/event-db.js";
 import Models from "../../database/models.js";
 import { StatusCode } from "status-code-enum";
 import { NextFunction } from "express-serve-static-core";
@@ -78,7 +78,6 @@ staffRouter.post("/attendance/", strongJwtVerification, async (req: Request, res
 
 export default staffRouter;
 
-
 // Function to generate a single event entry
 staffRouter.get("/shifts/", strongJwtVerification, async (_1: Request, res: Response, _2: NextFunction) => {
     const data = [
@@ -97,7 +96,7 @@ staffRouter.get("/shifts/", strongJwtVerification, async (_1: Request, res: Resp
                 },
             ],
             isAsync: false,
-            eventType: "STAFFSHIFT"
+            eventType: "STAFFSHIFT",
         },
         {
             eventId: "event 2",
@@ -114,7 +113,7 @@ staffRouter.get("/shifts/", strongJwtVerification, async (_1: Request, res: Resp
                 },
             ],
             isAsync: false,
-            eventType: "STAFFSHIFT"
+            eventType: "STAFFSHIFT",
         },
         {
             eventId: "event 3",
@@ -131,7 +130,7 @@ staffRouter.get("/shifts/", strongJwtVerification, async (_1: Request, res: Resp
                 },
             ],
             isAsync: false,
-            eventType: "STAFFSHIFT"
+            eventType: "STAFFSHIFT",
         },
         {
             eventId: "event 4",
@@ -148,9 +147,9 @@ staffRouter.get("/shifts/", strongJwtVerification, async (_1: Request, res: Resp
                 },
             ],
             isAsync: false,
-            eventType: "STAFFSHIFT"
+            eventType: "STAFFSHIFT",
         },
     ] satisfies StaffEvent[];
 
-    return res.status(StatusCode.SuccessOK).send({data: data});
+    return res.status(StatusCode.SuccessOK).send({ data: data });
 });

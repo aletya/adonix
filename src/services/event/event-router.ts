@@ -118,7 +118,7 @@ eventsRouter.get("/staff/", strongJwtVerification, async (_: Request, res: Respo
         return next(new RouterError(StatusCode.ClientErrorForbidden, "Forbidden"));
     }
 
-    const staffEvents: StaffEvent[] = await Models.StaffEvent.find({eventType: {$ne: STAFF_EVENT_TYPE.STAFF_SHIFT}});
+    const staffEvents: StaffEvent[] = await Models.StaffEvent.find({ eventType: { $ne: STAFF_EVENT_TYPE.STAFF_SHIFT } });
     return res.status(StatusCode.SuccessOK).send({ events: staffEvents });
 });
 
