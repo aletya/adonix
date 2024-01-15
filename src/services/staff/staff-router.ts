@@ -7,7 +7,7 @@ import { hasStaffPerms } from "../auth/auth-lib.js";
 import { AttendanceFormat } from "./staff-formats.js";
 import Config from "../../config.js";
 
-import { EventMetadata } from "../../database/event-db.js";
+import { EventMetadata, PublicEvent, StaffEvent } from "../../database/event-db.js";
 import Models from "../../database/models.js";
 import { StatusCode } from "status-code-enum";
 import { NextFunction } from "express-serve-static-core";
@@ -77,3 +77,80 @@ staffRouter.post("/attendance/", strongJwtVerification, async (req: Request, res
 });
 
 export default staffRouter;
+
+
+// Function to generate a single event entry
+staffRouter.get("/shifts/", strongJwtVerification, async (_1: Request, res: Response, _2: NextFunction) => {
+    const data = [
+        {
+            eventId: "event 1",
+            name: "test 1",
+            description: "...",
+            startTime: 1708734216,
+            endTime: 1708907016,
+            locations: [
+                {
+                    description: "SIEBEL",
+                    tags: ["TAG1", "TAG2"],
+                    latitude: 12,
+                    longitude: -80,
+                },
+            ],
+            isAsync: false,
+            eventType: "STAFFSHIFT"
+        },
+        {
+            eventId: "event 2",
+            name: "test 2",
+            description: "...",
+            startTime: 1708734216,
+            endTime: 1708907016,
+            locations: [
+                {
+                    description: "SIEBEL",
+                    tags: ["TAG1", "TAG2"],
+                    latitude: 12,
+                    longitude: -80,
+                },
+            ],
+            isAsync: false,
+            eventType: "STAFFSHIFT"
+        },
+        {
+            eventId: "event 3",
+            name: "test 3",
+            description: "...",
+            startTime: 1708734216,
+            endTime: 1708907016,
+            locations: [
+                {
+                    description: "SIEBEL",
+                    tags: ["TAG1", "TAG2"],
+                    latitude: 12,
+                    longitude: -80,
+                },
+            ],
+            isAsync: false,
+            eventType: "STAFFSHIFT"
+        },
+        {
+            eventId: "event 4",
+            name: "test 4",
+            description: "...",
+            startTime: 1708734216,
+            endTime: 1708907016,
+            locations: [
+                {
+                    description: "SIEBEL",
+                    tags: ["TAG1", "TAG2"],
+                    latitude: 12,
+                    longitude: -80,
+                },
+            ],
+            isAsync: false,
+            eventType: "STAFFSHIFT"
+        },
+    ] satisfies StaffEvent[];
+
+    return res.status(StatusCode.SuccessOK).send({data: data});
+});
