@@ -39,16 +39,22 @@ export enum Avatars {
 }
 
 function requireEnv(name: string): string {
-    const value = env[name];
+    return name;
+    // const value = env[name];
 
-    if (value === undefined) {
-        throw new Error(`Env variable ${name} is not defined!`);
-    }
+    // if (value === undefined) {
+    //     throw new Error(`Env variable ${name} is not defined!`);
+    // }
 
-    return value;
+    // return value;
 }
 
 const Config = {
+    /* HackWebToken */
+    SECRET_SIGNATURE_KEY: "secretSignatureKey",
+    SECRET_ENCRYPTION_KEY: "secretEncryptionKeysecretEncrypt",
+    
+
     /* Jest */
     TEST: false, // False by default, will be mocked over
 

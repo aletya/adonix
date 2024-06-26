@@ -14,8 +14,9 @@ import registrationRouter from "./services/registration/registration-router.js";
 import s3Router from "./services/s3/s3-router.js";
 import shopRouter from "./services/shop/shop-router.js";
 import staffRouter from "./services/staff/staff-router.js";
-import versionRouter from "./services/version/version-router.js";
+import tokenRouter from "./services/token/token-router.js";
 import userRouter from "./services/user/user-router.js";
+import versionRouter from "./services/version/version-router.js";
 
 // import { InitializeConfigReader } from "./middleware/config-reader.js";
 import { ErrorHandler } from "./middleware/error-handler.js";
@@ -52,8 +53,9 @@ app.use("/registration/", database, registrationRouter);
 app.use("/s3/", s3Router);
 app.use("/shop/", database, shopRouter);
 app.use("/staff/", database, staffRouter);
-app.use("/version/", versionRouter);
+app.use("/token/", tokenRouter);
 app.use("/user/", database, userRouter);
+app.use("/version/", versionRouter);
 
 // Ensure that API is running
 app.get("/", (_: Request, res: Response) => {
