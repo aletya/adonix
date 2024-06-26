@@ -53,8 +53,10 @@ tokenRouter.post("/encode", (req: Request, res: Response) => {
  * @apiSuccessExample Example Success Response:
  *  HTTP/1.1 200 OK
  *  {
- *      "token": "YgilbTLUmdtz5X7AYW0pXzwykE2PxlvyQRhg6vzRbDXmKhpZ+kfwVH5TYMEM6n7NOjS1GyqgM2bKxFDBxOt81CMHelw+yQfFB+ObXWeG2sAKIVxxNxHclNX8S62XG9dN",
- *      "context": "91ab24590b32603f80c3472d4d3ffef6"
+ *      "name": "joe snide",
+ *      "age": "42",
+ *      "ssn": "103-318-2831",
+ *      "mothers maiden name": "Bracket"
  *  }
  * 
  * @apiError (400: Bad Request) {String} MissingParams Missing parameters.
